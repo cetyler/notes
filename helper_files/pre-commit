@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Run index.py
+#
+# Created by Christopher Tyler
+#
+# Place this file in ".git/hooks" (should be called pre-commit).
+# This file will run index.py and check if the indexes changed.
+# If there were any changes, stop the commit and let the user know they need to
+# add the changed files.
+
+SRC_FOLDER=$HOME/programming/notes
+INDEX=index.md
+SUPER_INDEX=super_index.md
+PYTHON_FILE=index.py
+
+# If any command fails, exit immediately with the command's exit status.
+set -eo pipefail
+
+echo "Running index.py"
+cd "$SRC_FOLDER"
+
+# Get md5sum prior to running index.py
+index_m1=$(md5sum "$INDEX")
+super_index_m1=$(md5sum "$SUPER_INDEX")
+
+python3 $PYTHON_FILE
+
+# Get md5sum again to check for changes.
+index_m2=$(md5sum "$INDEX")
+super_index_m2=$(md5sum "$SUPER_INDEX")
+
+# If there are changes, exit (if both changed only one will show up).
+if [ "$index_m1" != "$index_m2" ]; then
+    echo "$INDEX was changed, need to add to commit." >&2
+    exit 1
+fi
+if [ "$super_index_m1" != "$super_index_m2" ]; then
+    echo "$SUPER_INDEX was changed, need to add to commit." >&2
+    exit 1
+fi
+
